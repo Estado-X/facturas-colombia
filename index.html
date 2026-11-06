@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tus facturas electrónicas, en un Excel · Estado X</title>
+<meta name="description" content="Arrastra los .xml y .zip de las facturas electrónicas de la DIAN que te llegan al correo y descarga un Excel con número, fecha, emisor, NIT, subtotal, IVA, total y CUFE. Gratis y sin subir nada.">
+<meta property="og:title" content="Tus facturas electrónicas, en un Excel">
+<meta property="og:description" content="Arrastras los .xml y .zip de tus facturas y sale la tabla con los totales, lista para tu contador. Corre en tu navegador.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/estilos.css">
+</head>
+<body>
+<header class="banda">
+  <div class="contenedor banda__in">
+    <p class="kicker">Herramienta abierta · Estado X</p>
+    <h1>Tus facturas electrónicas, <em>en un Excel</em></h1>
+    <p class="banda__sub">Con cada factura electrónica te llega al correo un .zip con un .xml adentro. Arrástralos aquí, todos juntos, y sale la tabla con número, fecha, quién te facturó, NIT, IVA, total y CUFE, lista para descargar en Excel. No se sube nada: todo pasa en tu computador.</p>
+  </div>
+</header>
+
+<main class="contenedor">
+  <section class="bloque" aria-labelledby="t-cargar">
+    <h2 id="t-cargar"><span class="paso">1</span> Arrastra tus facturas</h2>
+    <label class="zona" id="zona">
+      <input type="file" id="archivos" multiple accept=".xml,.zip,application/xml,text/xml,application/zip" aria-describedby="zona-sub">
+      <svg class="zona__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9 14 3 3 3-3"/></svg>
+      <p class="zona__titulo">Suelta aquí los .xml y los .zip</p>
+      <p class="zona__sub" id="zona-sub">Puedes soltar cientos a la vez, o escogerlos de una carpeta. Los .zip se abren solos; los PDF que vengan adentro se ignoran.</p>
+      <span class="boton">Escoger archivos</span>
+    </label>
+    <div class="bajo-zona">
+      <button type="button" class="enlace" id="ejemplos">Probar con facturas de ejemplo (ficticias)</button>
+      <p class="estado" id="estado" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="bloque" aria-labelledby="t-tabla">
+    <div class="tarjeta">
+      <h2 id="t-tabla"><span class="paso">2</span> Tus facturas</h2>
+      <ul class="resumen" id="resumen" aria-live="polite"></ul>
+      <div class="tabla-scroll" tabindex="0" role="region" aria-labelledby="t-tabla">
+        <table id="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Tipo</th>
+              <th scope="col">Número</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Emisor</th>
+              <th scope="col">Adquiriente</th>
+              <th scope="col" class="n">Subtotal</th>
+              <th scope="col" class="n">IVA</th>
+              <th scope="col" class="n">Otros impuestos</th>
+              <th scope="col" class="n">Total</th>
+              <th scope="col">CUFE / CUDE</th>
+            </tr>
+          </thead>
+          <tbody id="cuerpo"><tr><td colspan="10" class="vacio">Todavía no hay facturas. Arrástralas arriba o prueba con los ejemplos.</td></tr></tbody>
+          <tfoot id="pie"></tfoot>
+        </table>
+      </div>
+      <p class="nota">Las notas crédito restan: van en negativo y se descuentan del total. Si una misma factura llega dos veces (mismo CUFE), se cuenta una sola vez.</p>
+      <ul class="avisos" id="avisos" hidden></ul>
+      <div class="acciones">
+        <button type="button" class="boton" id="descargar" disabled>Descargar Excel (.xlsx)</button>
+        <button type="button" class="boton boton--claro" id="borrar" disabled>Empezar de nuevo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="bloque dos">
+    <div class="tarjeta">
+      <h2>De dónde sale cada dato</h2>
+      <p class="ayuda">La página lee el XML de la factura electrónica con los nombres del Anexo Técnico de Factura Electrónica de Venta de la DIAN, versión 1.9.</p>
+      <dl class="campos-xml">
+        <dt>Número</dt><dd><code>cbc:ID</code>; el prefijo, de la numeración autorizada (<code>sts:Prefix</code>)</dd>
+        <dt>Fecha</dt><dd><code>cbc:IssueDate</code></dd>
+        <dt>Emisor</dt><dd><code>cac:AccountingSupplierParty</code>: razón social y NIT con su dígito de verificación</dd>
+        <dt>Adquiriente</dt><dd><code>cac:AccountingCustomerParty</code>: nombre y NIT o cédula</dd>
+        <dt>Subtotal y total</dt><dd><code>cbc:LineExtensionAmount</code> y <code>cbc:PayableAmount</code> de los totales</dd>
+        <dt>IVA</dt><dd><code>cac:TaxTotal</code> con tributo 01; los demás (INC, ICA, bolsas…) van en «Otros impuestos»</dd>
+        <dt>Retenciones</dt><dd><code>cac:WithholdingTaxTotal</code> (solo en el Excel)</dd>
+        <dt>CUFE / CUDE</dt><dd><code>cbc:UUID</code>: CUFE en facturas, CUDE en notas</dd>
+        <dt>Contenedor</dt><dd>Si llega un <code>AttachedDocument</code>, se lee la factura que va adentro</dd>
+      </dl>
+    </div>
+    <div class="tarjeta">
+      <h2>Límites</h2>
+      <ul class="reglas">
+        <li>Lee el XML, que es la factura de verdad. <strong>No lee PDF</strong> ni fotos de facturas en papel.</li>
+        <li>No valida la firma digital ni consulta a la DIAN si la factura fue aceptada. Eso se revisa en el portal de factura electrónica de la DIAN, con el CUFE.</li>
+        <li>Muestra lo que dice cada factura; no la clasifica en gastos deducibles ni hace tu declaración. Eso lo revisas con tu contador.</li>
+        <li>Si los valores vienen en otra moneda, el total se separa por moneda: no se convierten a pesos.</li>
+        <li>No guarda nada: al cerrar la página, se borra. Descarga el Excel antes de salir.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <div class="contenedor pie__in">
+    <p>Todo pasa en tu navegador: tus facturas no se suben a ningún lado.</p>
+    <p>Inspirada en <a href="https://github.com/invoice-x/invoice2data" target="_blank" rel="noopener">invoice2data</a> (licencia MIT). Código abierto en <a href="https://github.com/Estado-X/facturas-colombia" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p class="firma">Hecho por <a href="https://estadox.com" target="_blank" rel="noopener">Estado <em>X</em></a></p>
+  </div>
+</footer>
+<script src="assets/zip.js"></script>
+<script src="assets/facturas.js"></script>
+<script src="assets/excel.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

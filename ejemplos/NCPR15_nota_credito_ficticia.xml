@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- DOCUMENTO DE EJEMPLO FICTICIO: las empresas, las personas, los NIT, las cédulas y el CUFE son inventados para probar la herramienta. No es una factura real. -->
+<CreditNote xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:sts="dian:gov:co:facturaelectronica:Structures-2-1">
+  <ext:UBLExtensions>
+    <ext:UBLExtension>
+      <ext:ExtensionContent>
+        <sts:DianExtensions>
+          <sts:SoftwareProvider><sts:ProviderID schemeID="2" schemeName="31">900000001</sts:ProviderID></sts:SoftwareProvider>
+        </sts:DianExtensions>
+      </ext:ExtensionContent>
+    </ext:UBLExtension>
+  </ext:UBLExtensions>
+  <cbc:UBLVersionID>UBL 2.1</cbc:UBLVersionID>
+  <cbc:CustomizationID>10</cbc:CustomizationID>
+  <cbc:ProfileID>DIAN 2.1: Nota Crédito de Factura Electrónica de Venta</cbc:ProfileID>
+  <cbc:ProfileExecutionID>1</cbc:ProfileExecutionID>
+  <cbc:ID>NCPR15</cbc:ID>
+  <cbc:UUID schemeID="1" schemeName="CUDE-SHA384">bce5ebe75c3e18fd48557624468c49995fd66b45cf92dd1e5f96785977ed794c0ab6b046ac458a14c58d75a8b6b890b5</cbc:UUID>
+  <cbc:IssueDate>2026-11-10</cbc:IssueDate>
+  <cbc:IssueTime>10:15:00-05:00</cbc:IssueTime>
+  <cbc:CreditNoteTypeCode>91</cbc:CreditNoteTypeCode>
+  <cbc:Note>DOCUMENTO DE EJEMPLO FICTICIO. No es una factura real.</cbc:Note>
+  <cbc:DocumentCurrencyCode>COP</cbc:DocumentCurrencyCode>
+  <cbc:LineCountNumeric>1</cbc:LineCountNumeric>
+  <cac:DiscrepancyResponse><cbc:ReferenceID>FEPR1001</cbc:ReferenceID><cbc:ResponseCode>1</cbc:ResponseCode><cbc:Description>Devolución parcial (ejemplo ficticio)</cbc:Description></cac:DiscrepancyResponse>
+  <cac:BillingReference><cac:InvoiceDocumentReference><cbc:ID>FEPR1001</cbc:ID><cbc:UUID schemeName="CUFE-SHA384">717a07da45e083d61510193a38405795e93c4d61ae397b048f2e301106e86c2b8299a6c667c1222aaef969bb7c059080</cbc:UUID><cbc:IssueDate>2026-11-03</cbc:IssueDate></cac:InvoiceDocumentReference></cac:BillingReference>
+  <cac:AccountingSupplierParty>
+    <cbc:AdditionalAccountID>1</cbc:AdditionalAccountID>
+    <cac:Party>
+      <cac:PartyName><cbc:Name>Papelería Ficticia de Ejemplo S.A.S.</cbc:Name></cac:PartyName>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>Papelería Ficticia de Ejemplo S.A.S.</cbc:RegistrationName>
+        <cbc:CompanyID schemeAgencyID="195" schemeID="2" schemeName="31">900000001</cbc:CompanyID>
+        <cbc:TaxLevelCode listName="48">R-99-PN</cbc:TaxLevelCode>
+        <cac:TaxScheme><cbc:ID>01</cbc:ID><cbc:Name>IVA</cbc:Name></cac:TaxScheme>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cbc:AdditionalAccountID>2</cbc:AdditionalAccountID>
+    <cac:Party>
+      <cac:PartyName><cbc:Name>Ana Ejemplo Prueba</cbc:Name></cac:PartyName>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>Ana Ejemplo Prueba</cbc:RegistrationName>
+        <cbc:CompanyID schemeAgencyID="195" schemeName="13">1000000001</cbc:CompanyID>
+        <cbc:TaxLevelCode listName="48">R-99-PN</cbc:TaxLevelCode>
+        <cac:TaxScheme><cbc:ID>01</cbc:ID><cbc:Name>IVA</cbc:Name></cac:TaxScheme>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="COP">250000.00</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+      <cac:TaxCategory><cbc:Percent>19.00</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>01</cbc:ID><cbc:Name>IVA</cbc:Name></cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="COP">250000.00</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="COP">250000.00</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="COP">297500.00</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="COP">297500.00</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:CreditNoteLine>
+    <cbc:ID>1</cbc:ID>
+    <cbc:CreditedQuantity unitCode="94">1</cbc:CreditedQuantity>
+    <cbc:LineExtensionAmount currencyID="COP">250000.00</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="COP">250000.00</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="COP">47500.00</cbc:TaxAmount>
+        <cac:TaxCategory><cbc:Percent>19.00</cbc:Percent>
+          <cac:TaxScheme><cbc:ID>01</cbc:ID><cbc:Name>IVA</cbc:Name></cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:Item><cbc:Description>Artículo de ejemplo ficticio</cbc:Description></cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="COP">250000.00</cbc:PriceAmount><cbc:BaseQuantity unitCode="94">1</cbc:BaseQuantity></cac:Price>
+  </cac:CreditNoteLine>
+</CreditNote>
