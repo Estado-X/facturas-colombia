@@ -242,3 +242,41 @@ test('Excel sin documentos también abre', () => {
   const xlsx = X.crear({ documentos: [], errores: [], repetidas: [] }, [], Z);
   assert.ok(Z.esZip(xlsx));
 });
+
+test('moneda inválida (intento de inyección en la fórmula) no llega al Excel', async () => {
+  const malo = 'USD",A1,A1)+HYPERLINK("http://x.example","clic")+SUM("';
+  const xml = fs.readFileSync(path.join(EJ, 'FEX12_exportacion_ficticia.xml'), 'utf8')
+    .replace('<cbc:DocumentCurrencyCode>USD</cbc:DocumentCurrencyCode>', '<cbc:DocumentCurrencyCode>' + malo.replace(/"/g, '&quot;') + '</cbc:DocumentCurrencyCode>');
+  const r = await F.procesar([{ nombre: 'malo.xml', bytes: enc.encode(xml) }], null, Z);
+  const d = r.documentos[0];
+  assert.strictEqual(d.moneda, '¿?');
+  assert.ok(d.avisos.some((a) => /moneda no es un código válido/.test(a)));
+  const xlsx = X.crear(r, F.totales(r.documentos), Z);
+  const partes = {};
+  for (const e of Z.listar(xlsx)) partes[e.nombre] = new TextDecoder().decode(await e.leer());
+  const h = partes['xl/worksheets/sheet1.xml'];
+  assert.doesNotMatch(h, /HYPERLINK/);
+  assert.doesNotMatch(h, /<f>/); // sin moneda válida, el total va como valor, sin fórmula
+  assert.match(partes['xl/worksheets/sheet2.xml'], /moneda no es un código válido/);
+  assert.strictEqual(X.textoFormula('A"B'), '"A""B"');
+});
+
+test('texto del XML que empieza como fórmula queda como texto literal en el Excel', async () => {
+  const xml = texto('FEPR1001_papeleria_ficticia.xml').replace(/Papelería Ficticia de Ejemplo S\.A\.S\./g, '=HYPERLINK("http://x.example","clic")')
+    .replace('<cbc:CompanyID schemeAgencyID="195" schemeName="13">1000000001</cbc:CompanyID>', '<cbc:CompanyID schemeAgencyID="195" schemeName="13">+1000000001</cbc:CompanyID>');
+  const r = await F.procesar([{ nombre: 'f.xml', bytes: enc.encode(xml) }], null, Z);
+  const xlsx = X.crear(r, F.totales(r.documentos), Z);
+  const partes = {};
+  for (const e of Z.listar(xlsx)) partes[e.nombre] = new TextDecoder().decode(await e.leer());
+  const h = partes['xl/worksheets/sheet1.xml'];
+  assert.match(h, /<c r="F2" t="inlineStr" s="6"><is><t xml:space="preserve">=HYPERLINK/);
+  assert.match(h, /<c r="K2" t="inlineStr" s="6"><is><t xml:space="preserve">\+1000000001/);
+  assert.match(partes['xl/styles.xml'], /quotePrefix="1"/);
+  // Las celdas de texto normales no llevan el estilo literal
+  assert.match(h, /<c r="A2" t="inlineStr"><is>/);
+});
+
+test('tipos de identificación del anexo 1.9: PPT (48) y NUIP (91)', () => {
+  assert.strictEqual(F.TIPOS_ID['48'], 'PPT');
+  assert.strictEqual(F.TIPOS_ID['91'], 'NUIP');
+});

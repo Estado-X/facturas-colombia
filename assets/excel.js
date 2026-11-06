@@ -9,13 +9,15 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function columna(i) { var s = ''; i++; while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+  // Texto dentro de una fórmula: solo códigos de moneda limpios; las comillas se doblan.
+  function textoFormula(t) { return '"' + String(t).replace(/"/g, '""') + '"'; }
   function serial(iso) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
     if (!m) return null;
     return (Date.UTC(+m[1], +m[2] - 1, +m[3]) - Date.UTC(1899, 11, 30)) / 86400000;
   }
 
-  // Estilos: 0 normal · 1 encabezado · 2 número · 3 fecha · 4 número en negrilla · 5 texto en negrilla
+  // Estilos: 0 normal · 1 encabezado · 2 número · 3 fecha · 4 número en negrilla · 5 texto en negrilla · 6 texto literal (quotePrefix)
   var ESTILOS = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
     '<numFmts count="2"><numFmt numFmtId="164" formatCode="#,##0.00"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy"/></numFmts>' +
@@ -24,13 +26,14 @@
     '<fill><patternFill patternType="solid"><fgColor rgb="FFF2EBDC"/><bgColor indexed="64"/></patternFill></fill></fills>' +
     '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
     '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
-    '<cellXfs count="6">' +
+    '<cellXfs count="7">' +
     '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
     '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
     '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
     '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
     '<xf numFmtId="164" fontId="1" fillId="2" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
     '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" quotePrefix="1"/>' +
     '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
 
   function celda(ref, v, estilo) {
@@ -39,6 +42,8 @@
     }
     if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '"' + (estilo ? ' s="' + estilo + '"' : '') + '><v>' + v + '</v></c>';
     if (v === null || v === undefined || v === '') return '';
+    // Texto que empieza como fórmula: se marca como texto literal para que Excel nunca lo calcule.
+    if (/^[=+\-@\t\r]/.test(String(v)) && !estilo) estilo = 6;
     return '<c r="' + ref + '" t="inlineStr"' + (estilo ? ' s="' + estilo + '"' : '') + '><is><t xml:space="preserve">' + esc(v) + '</t></is></c>';
   }
 
@@ -97,7 +102,9 @@
         var claves = ['subtotal', 'iva', 'otros', 'retenciones', 'total'];
         PLATA.forEach(function (c, k) {
           var L = columna(c), M = columna(COL_MONEDA);
-          fila[c] = { f: 'SUMIF($' + M + '$2:$' + M + '$' + ultima + ',"' + t.moneda + '",' + L + '2:' + L + ultima + ')', v: t[claves[k]] };
+          fila[c] = /^[A-Z]{3}$/.test(t.moneda)
+            ? { f: 'SUMIF($' + M + '$2:$' + M + '$' + ultima + ',' + textoFormula(t.moneda) + ',' + L + '2:' + L + ultima + ')', v: t[claves[k]] }
+            : t[claves[k]];
         });
         fila[COL_MONEDA] = t.moneda;
         estilosFila[filas.length] = fila.map(function (v, c) { return PLATA.indexOf(c) >= 0 ? 4 : 5; });
@@ -147,7 +154,7 @@
     return Zip.crear(archivos, fechaZip);
   }
 
-  var Excel = { crear: crear, serial: serial, columna: columna, COLUMNAS: COLUMNAS };
+  var Excel = { crear: crear, serial: serial, columna: columna, textoFormula: textoFormula, COLUMNAS: COLUMNAS };
   if (typeof module !== 'undefined' && module.exports) module.exports = Excel;
   else raiz.Excel = Excel;
 })(this);

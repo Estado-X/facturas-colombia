@@ -109,7 +109,7 @@
   /* ---------- Factura electrónica → fila ---------- */
 
   // Tipo de documento de identificación (Anexo 1.9, tabla 13.2.1; @schemeName).
-  var TIPOS_ID = { '11': 'Registro civil', '12': 'TI', '13': 'CC', '21': 'Tarjeta de extranjería', '22': 'CE', '31': 'NIT', '41': 'Pasaporte', '42': 'Doc. extranjero', '47': 'PEP', '50': 'NIT de otro país' };
+  var TIPOS_ID = { '11': 'Registro civil', '12': 'TI', '13': 'CC', '21': 'Tarjeta de extranjería', '22': 'CE', '31': 'NIT', '41': 'Pasaporte', '42': 'Doc. extranjero', '47': 'PEP', '48': 'PPT', '50': 'NIT de otro país', '91': 'NUIP' };
   var RAICES = { Invoice: 1, CreditNote: 1, DebitNote: 1 };
 
   function num(nodo) {
@@ -179,6 +179,8 @@
     hijos(raizNodo, 'WithholdingTaxTotal').forEach(function (tt) { retenciones += num(hijo(tt, 'TaxAmount')) || 0; });
     var uuid = hijo(raizNodo, 'UUID');
     var moneda = texto(hijo(raizNodo, 'DocumentCurrencyCode')) || (hijo(tot, 'PayableAmount') ? (hijo(tot, 'PayableAmount').a.currencyID || '') : '') || 'COP';
+    // Solo códigos ISO 4217 (tres letras). Lo demás no entra a la tabla ni a las fórmulas del Excel.
+    if (!/^[A-Z]{3}$/.test(moneda)) { avisos.push('La moneda no es un código válido de tres letras; se dejó como «¿?».'); moneda = '¿?'; }
     if (texto(hijo(raizNodo, 'ProfileExecutionID')) === '2') avisos.push('Es un documento del ambiente de pruebas de la DIAN, no una factura real.');
     if (!uuid || !texto(uuid)) avisos.push('No trae CUFE ni CUDE.');
     return {
